@@ -407,7 +407,7 @@ namespace ConsoleAppSolution
                 ChannelParameters[48, i] = Functions.DiamG(ChannelParameters[7, i]); // Гидравлический диаметр
             }
 
-            Console.WriteLine("Введите термогазодинамические параметры для входных сечений");
+            Console.WriteLine("\n\n***\n\nВведите термогазодинамические параметры для входных сечений");
             for (int i = 0; i < NumSectionIn; i++)
             {
                 for (int j = 0; j < NumChannel; j++)
@@ -421,7 +421,21 @@ namespace ConsoleAppSolution
                     }
                 }
             }
+
+            Console.WriteLine("\n\n***\n\nВведите полное давление для выходных сечений");
+            for (int i = 0; i < NumSectionOut; i++)
+            {
+                for (int j = 0; j < NumChannel; j++)
+                {
+                    if (SectionIn[i] == ChannelParameters[0, j])
+                    {
+                        Console.Write("\nВведите полное давление для {0}-го сечения: ", SectionOut[i]);
+                        ChannelParameters[9, i] = Convert.ToDouble(Console.ReadLine());
+                        Console.Write("Введите полную температуру для {0}-го сечения: ", SectionOut[i]);
+                        ChannelParameters[12, i] = Convert.ToDouble(Console.ReadLine());
+                    }
+                }
+            }
         }
     }
-
 }
