@@ -381,11 +381,10 @@ namespace ConsoleAppSolution
             }
 
             double[,] ChannelParameters = new double[48, NumChannel]; //Объявление массива с параметрами для канала типа трубы
-
             Console.Write("\n\n***\n\nЗаполните номера сечений для каналов\n"); //Происходит заполнение первых двух строк массива - номеров сечений в канале
             for (int i = 0; i < NumChannel; i++)
             {
-                Console.Write("\nВведите номер выходного сечения для канала №{0}: ", (i + 1));
+                Console.Write("\nВведите номер входного сечения для канала №{0}: ", (i + 1));
                 ChannelParameters[0, i] = Convert.ToInt32(Console.ReadLine());
                 Console.Write("Введите номер выходного сечения для канала №{0}: ", (i + 1));
                 ChannelParameters[1, i] = Convert.ToInt32(Console.ReadLine());
@@ -404,7 +403,8 @@ namespace ConsoleAppSolution
                 ChannelParameters[5, i] = Math.PI * Math.Pow(ChannelParameters[2, i], 2) / 4; // Площадь на входе
                 ChannelParameters[6, i] = Math.PI * Math.Pow(ChannelParameters[3, i], 2) / 4; // Площадь на выходе
                 ChannelParameters[7, i] = Math.PI * Math.Pow(ChannelParameters[4, i], 2) / 4; // Площадь по средине
-                ChannelParameters[48, i] = Functions.DiamG(ChannelParameters[7, i]); // Гидравлический диаметр
+                ChannelParameters[47, i] = Functions.DiamG(ChannelParameters[7, i]); // Гидравлический диаметр
+                ChannelParameters[43, i] = 2.0;
             }
 
             Console.WriteLine("\n\n***\n\nВведите термогазодинамические параметры для входных сечений");
@@ -422,7 +422,7 @@ namespace ConsoleAppSolution
                 }
             }
 
-            Console.WriteLine("\n\n***\n\nВведите полное давление для выходных сечений");
+            Console.WriteLine("\n\n***\n\nВведите термогазодинамические параметры для выходных сечений");
             for (int i = 0; i < NumSectionOut; i++)
             {
                 for (int j = 0; j < NumChannel; j++)
@@ -431,11 +431,207 @@ namespace ConsoleAppSolution
                     {
                         Console.Write("\nВведите полное давление для {0}-го сечения: ", SectionOut[i]);
                         ChannelParameters[9, i] = Convert.ToDouble(Console.ReadLine());
-                        Console.Write("Введите полную температуру для {0}-го сечения: ", SectionOut[i]);
-                        ChannelParameters[12, i] = Convert.ToDouble(Console.ReadLine());
+                        /* Console.Write("Введите полную температуру для {0}-го сечения: ", SectionOut[i]);
+                         * ChannelParameters[12, i] = Convert.ToDouble(Console.ReadLine());
+                         */
+                        
                     }
                 }
             }
+            //Объявление давлений, необходимых для заполнения промежуточных давлений в каналах
+            double pressure_max1 = 0;
+            double temper_max = 0;
+            double pressure_min1 = Math.Pow(10, 20);
+
+            for (int i = 0; i < NumChannel; i++)
+            {
+                if (pressure_max1 < ChannelParameters[10, i])
+                {
+                    pressure_max1 = ChannelParameters[10, i];
+                }
+                else if (pressure_max1 < ChannelParameters[9, i])
+                {
+                    pressure_max1 = ChannelParameters[9, i];
+                }
+
+                if (pressure_min1 > ChannelParameters[10, i] && ChannelParameters[10, i] != 0)
+                {
+                    pressure_min1 = ChannelParameters[10, i];
+                }
+                else if (pressure_min1 > ChannelParameters[9, i] && ChannelParameters[9, i] != 0)
+                {
+                    pressure_min1 = ChannelParameters[9, i];
+                }
+
+                if (temper_max < ChannelParameters[12, i])
+                {
+                    temper_max = ChannelParameters[12, i];
+                }
+            }
+
+            double pressure_max = 0;
+            double pressure_min = Math.Pow(10, 20);
+
+            for (int i = 0; i < NumChannel; i++)
+            {
+                if (pressure_max < ChannelParameters[10, i] && pressure_max1 != ChannelParameters[10, i])
+                {
+                    pressure_max = ChannelParameters[10, i];
+                }
+                else if (pressure_max < ChannelParameters[9, i] && pressure_max1 != ChannelParameters[9, i])
+                {
+                    pressure_max = ChannelParameters[9, i];
+                }
+
+                if (pressure_min > ChannelParameters[10, i] && ChannelParameters[10, i] != 0 && pressure_min1 != ChannelParameters[10, i])
+                {
+                    pressure_min = ChannelParameters[10, i];
+                }
+                else if (pressure_min > ChannelParameters[9, i] && ChannelParameters[9, i] != 0 && pressure_min1 != ChannelParameters[9, i])
+                {
+                    pressure_min = ChannelParameters[9, i];
+                }
+            }
+            // Распределение среднего давления по всем сечениям
+            double pressure_mid = (pressure_max + pressure_min) / 2;
+
+            for (int i = 0; i < NumChannel; i++)
+            {
+                ChannelParameters[13, i] = temper_max;
+                ChannelParameters[12, i] = temper_max;
+                ChannelParameters[14, i] = temper_max;
+                if (ChannelParameters[10, i] == 0)
+                {
+                    ChannelParameters[10, i] = pressure_mid;
+                }
+                else if (ChannelParameters[9, i] == 0)
+                {
+                    ChannelParameters[9, i] = pressure_mid;
+                }
+                if (ChannelParameters[12, i] != 0 && ChannelParameters[13, i] != 0)
+                {
+                    ChannelParameters[13, i] = ChannelParameters[12, i];
+                }
+                if (ChannelParameters[13, i] != 0 && ChannelParameters[12, i] != 0)
+                {
+                    ChannelParameters[12, i] = ChannelParameters[13, i];
+                }
+            }
+
+            // Определение количества сечений в системе
+            int SumSect;
+            int[,] SumSection = new int[2, NumSection];
+
+            for (int i = 0; i < NumSection; i++)
+            {
+                SumSect = 0;
+                for (int j = 0; j < NumChannel; j++)
+                {
+                    if (i + 1 == ChannelParameters[0, j])
+                    {
+                        SumSect += 1;
+                    }
+                    else if (i + 1 == ChannelParameters[1, j])
+                    {
+                        SumSect += 1;
+                    }
+                }
+                SumSection[0, i] = i + 1;
+                SumSection[1, i] = SumSect;
+            }
+
+            double delta;
+            double p_out, p_in;
+            double p_max, p_min, p_mid;
+            double MassFlowNumerator;
+            int iter = 0;
+
+            for (int num_iter = 0; num_iter < 100; num_iter++)
+            {
+                p_max = 0;
+                p_min = Math.Pow(10, 20);
+
+                for (int i = 0; i < NumSection; i++)
+                {
+                    delta = 1000000;
+                    if (SumSection[1, i] > 1)
+                    {
+                        for (int j = 0; j < NumChannel; j++)
+                        {
+                            if (SumSection[0, i] == ChannelParameters[1, j] || SumSection[0, i] == ChannelParameters[0, j])
+                            {
+                                if (p_max < ChannelParameters[10, j])
+                                {
+                                    p_max = ChannelParameters[10, j];
+                                }
+                                if (p_max < ChannelParameters[9, j])
+                                {
+                                    p_max = ChannelParameters[9, j];
+                                }
+                                if (p_min > ChannelParameters[10, j])
+                                {
+                                    p_min = ChannelParameters[10, j];
+                                }
+                                if (p_min > ChannelParameters[9, j])
+                                {
+                                    p_min = ChannelParameters[9, j];
+                                }
+                            }
+                        }
+                        p_mid = (p_min + p_max) / 2;
+                        iter = 1;
+                        while (Math.Abs(delta) > 0.0000001)
+                        {
+
+                            MassFlowNumerator = 0;
+                            for (int j = 0; j < NumChannel; j++)
+                            {
+                                if (SumSection[0, i] == ChannelParameters[1, j])
+                                {
+                                    p_out = p_mid;
+                                    p_in = ChannelParameters[9, j];
+                                    ChannelParameters[10, j] = p_out;
+                                    MassFlowNumerator += Functions.MassFlow(p_in, p_out, ChannelParameters[7, j], ChannelParameters[14, j], ChannelParameters[43, j]);
+                                }
+                                else if (SumSection[0, i] == ChannelParameters[0, j])
+                                {
+                                    p_in = p_mid;
+                                    p_out = ChannelParameters[10, j];
+                                    ChannelParameters[9, j] = p_in;
+                                    MassFlowNumerator -= Functions.MassFlow(p_in, p_out, ChannelParameters[7, j], ChannelParameters[14, j], ChannelParameters[43, j]);
+                                }
+                            }
+                            if (MassFlowNumerator == delta)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                delta = MassFlowNumerator;
+                                if (delta > 0)
+                                {
+                                    p_min = p_mid;
+                                    p_mid = (p_max + p_min) / 2;
+                                }
+                                else if (delta < 0)
+                                {
+                                    p_max = p_mid;
+                                    p_mid = (p_max + p_min) / 2;
+                                }
+                            }
+                            iter += 1;
+                            if (iter + 1 % 100 == 0)
+                            {
+                                Console.WriteLine($"Итерация №: {iter + 1}. Расхождение расходов: {MassFlowNumerator}");
+                            }
+                        }
+
+                    }
+                }
+            }
+
+
+
         }
     }
 }
