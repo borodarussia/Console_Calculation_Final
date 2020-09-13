@@ -663,7 +663,6 @@ namespace ConsoleAppSolution
                     }
                 }
             }
-            Console.WriteLine($"Вывод давлений\np1: {ChannelParameters[9, 0]} p2: {ChannelParameters[10, 0]} ksi: {ChannelParameters[43, 0]}\np1: {ChannelParameters[9, 1]} p2: {ChannelParameters[10, 1]} ksi: {ChannelParameters[43, 1]}");
             for (int iter = 0; iter < 100; iter++)
             {
                 for (int i = 0; i < NumChannel; i++)
@@ -784,7 +783,6 @@ namespace ConsoleAppSolution
                 {
                     ChannelParameters[42, i] = Functions.MassFlow(ChannelParameters[9, i], ChannelParameters[10, i], ChannelParameters[7, i], ChannelParameters[14, i], ChannelParameters[43, i]);
                 }
-                Console.WriteLine($"\n{iter + 1}\nВывод давлений\np1: {ChannelParameters[9, 0]} p2: {ChannelParameters[10, 0]} ksi: {ChannelParameters[43, 0]}\np1: {ChannelParameters[9, 1]} p2: {ChannelParameters[10, 1]} ksi: {ChannelParameters[43, 1]}\nmassflow: {ChannelParameters[42, 0]} {ChannelParameters[42, 1]}");
             }            
         }
     }
