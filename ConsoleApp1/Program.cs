@@ -191,18 +191,18 @@ namespace ConsoleAppSolution
             double _viscosity = (p - p_max) / (p_min - p_max) * (v_min - v_max) + v_max;
             return _viscosity;
         }
-        public static double Reynolds(double velocity, double area, double density, double viscosity)
+        public static double Reynolds(double velocity, double diamg, double density, double viscosity)
         {
-            double _reynolds = velocity * Math.Sqrt(area * 4 / Math.PI) * density / viscosity;
+            double _reynolds = velocity * diamg * density / viscosity;
             return _reynolds;
         }
-        public static double KsiIn(double reynolds, double area_in, double area1, double length, double radius_kr = 0, double flow_angle = 0)
+        public static double KsiIn(double reynolds, double area_in, double area1, double length, double diamg, double radius_kr = 0, double flow_angle = 0)
         {
             double re = reynolds;
             double area_otn = area_in / area1;
             double r_kr = radius_kr;
             double eta, tau, ksi_an, _ksi_in;
-            double diam_g = Math.Sqrt(4 * area_in / Math.PI);
+            double diam_g = diamg;
             double l = length;
             double an = flow_angle * Math.PI / 180;
             if (area_otn < 1)
@@ -252,13 +252,13 @@ namespace ConsoleAppSolution
             _ksi_in = _ksi_in * ksi_an;
             return _ksi_in;
         }
-        public static double KsiOut(double reynolds, double area_out, double area2, double length)
+        public static double KsiOut(double reynolds, double area_out, double area2, double length, double diamg)
         {
             double re = reynolds;
             double area_otn = area_out / area2;
             double l = length;
             double m, _ksi_out;
-            double diam_g = Math.Sqrt(4 * area_out / Math.PI);
+            double diam_g = diamg;
             if (area_otn < 1)
             {
                 if (l / diam_g < 10)
@@ -284,9 +284,9 @@ namespace ConsoleAppSolution
             }
             return _ksi_out;
         }
-        public static double KsiTr(double reynolds, double area_mid, double length)
+        public static double KsiTr(double reynolds, double area_mid, double length, double diamg)
         {
-            double diam_g = Math.Sqrt(4 * area_mid / Math.PI);
+            double diam_g = diamg;
             double l = length;
             double re = reynolds;
             double lamb_tr;
@@ -309,9 +309,9 @@ namespace ConsoleAppSolution
             double _ksi_tr = lamb_tr * l / diam_g;
             return _ksi_tr;
         }
-        public static double KsiPov(double alpha, double area_mid, double radius)
+        public static double KsiPov(double alpha, double area_mid, double radius, double diamg)
         {
-            double diam_g = Math.Sqrt(4 * area_mid / Math.PI);
+            double diam_g = diamg;
             double alph = alpha * Math.PI / 180;
             double r = radius;
             double k_alph = 1.95 * (0.01 * alph) - 1.21 * Math.Pow(0.01 * alph, 2);
@@ -342,10 +342,36 @@ namespace ConsoleAppSolution
             double diam_g = Math.Sqrt(4 * area / Math.PI);
             return diam_g;
         }
+        public static double pi_lambda(double lambda, double k = 1.4)
+        {
+            double pi_l = Math.Pow(1 - (k -1) / (k + 1) * Math.Pow(lambda, 2), k / (k - 1));
+            return pi_l;
+        }
+        public static double tau_lambda(double lambda, double k = 1.4)
+        {
+            double tau = (1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2));
+            return tau;
+        }
+        public static double epsilon_lambda(double lambda, double k = 1.4)
+        {
+            double epsilon = Math.Pow((1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2)), 1 / (k - 1));
+            return epsilon;
+        }
+        public static double q_lambda (double lambda, double k = 1.4)
+        {
+            double q_l = Math.Pow((k + 1) / 2, 1 / (k - 1)) * lambda * Math.Pow(1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2), 1 / (k - 1));
+            return q_l;
+        }
+        public static double machnumber (double lambda, double k = 1.4)
+        {
+            double m = lambda * (2 / (k + 1)) / (1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2));
+            return m;
+        }
     }
 
     class Program
     {
+        public const int NumParameters = 54;
         static void Main(string[] args)
         {
             Console.Write("Введите количество каналов в системе: ");
@@ -380,7 +406,8 @@ namespace ConsoleAppSolution
                 return;
             }
 
-            double[,] ChannelParameters = new double[48, NumChannel]; //Объявление массива с параметрами для канала типа трубы
+            double[,] ChannelParameters = new double[NumParameters, NumChannel]; //Объявление массива с параметрами для канала типа трубы
+
             Console.Write("\n\n***\n\nЗаполните номера сечений для каналов\n"); //Происходит заполнение первых двух строк массива - номеров сечений в канале
             for (int i = 0; i < NumChannel; i++)
             {
@@ -474,26 +501,38 @@ namespace ConsoleAppSolution
 
             for (int i = 0; i < NumChannel; i++)
             {
-                if (pressure_max < ChannelParameters[10, i] && pressure_max1 != ChannelParameters[10, i])
+                if (NumSectionIn > 1)
                 {
-                    pressure_max = ChannelParameters[10, i];
+                    if (pressure_max < ChannelParameters[10, i] && pressure_max1 != ChannelParameters[10, i])
+                    {
+                        pressure_max = ChannelParameters[10, i];
+                    }
+                    else if (pressure_max < ChannelParameters[9, i] && pressure_max1 != ChannelParameters[9, i])
+                    {
+                        pressure_max = ChannelParameters[9, i];
+                    }
                 }
-                else if (pressure_max < ChannelParameters[9, i] && pressure_max1 != ChannelParameters[9, i])
+                else if (NumSectionIn == 1)
                 {
-                    pressure_max = ChannelParameters[9, i];
+                    pressure_max = pressure_max1;
                 }
 
-                if (pressure_min > ChannelParameters[10, i] && ChannelParameters[10, i] != 0 && pressure_min1 != ChannelParameters[10, i])
+                if (NumSectionOut > 1)
                 {
-                    pressure_min = ChannelParameters[10, i];
+                    if (pressure_min > ChannelParameters[10, i] && ChannelParameters[10, i] != 0 && pressure_min1 != ChannelParameters[10, i])
+                    {
+                        pressure_min = ChannelParameters[10, i];
+                    }
+                    else if (pressure_min > ChannelParameters[9, i] && ChannelParameters[9, i] != 0 && pressure_min1 != ChannelParameters[9, i])
+                    {
+                        pressure_min = ChannelParameters[9, i];
+                    }
                 }
-                else if (pressure_min > ChannelParameters[9, i] && ChannelParameters[9, i] != 0 && pressure_min1 != ChannelParameters[9, i])
+                else if (NumSectionOut == 1)
                 {
-                    pressure_min = ChannelParameters[9, i];
+                    pressure_min = pressure_min1;
                 }
             }
-            // Распределение среднего давления по всем сечениям
-            double pressure_mid = (pressure_max + pressure_min) / 2;
 
             for (int i = 0; i < NumChannel; i++)
             {
@@ -502,11 +541,11 @@ namespace ConsoleAppSolution
                 ChannelParameters[14, i] = temper_max;
                 if (ChannelParameters[10, i] == 0)
                 {
-                    ChannelParameters[10, i] = pressure_mid;
+                    ChannelParameters[10, i] = pressure_min;
                 }
                 else if (ChannelParameters[9, i] == 0)
                 {
-                    ChannelParameters[9, i] = pressure_mid;
+                    ChannelParameters[9, i] = pressure_min;
                 }
                 if (ChannelParameters[12, i] != 0 && ChannelParameters[13, i] != 0)
                 {
@@ -544,7 +583,6 @@ namespace ConsoleAppSolution
             double p_out, p_in;
             double p_max, p_min, p_mid;
             double MassFlowNumerator;
-            int iter = 0;
 
             for (int num_iter = 0; num_iter < 100; num_iter++)
             {
@@ -579,7 +617,6 @@ namespace ConsoleAppSolution
                             }
                         }
                         p_mid = (p_min + p_max) / 2;
-                        iter = 1;
                         while (Math.Abs(delta) > 0.0000001)
                         {
 
@@ -619,18 +656,13 @@ namespace ConsoleAppSolution
                                     p_mid = (p_max + p_min) / 2;
                                 }
                             }
-                            iter += 1;
-                            if (iter + 1 % 100 == 0)
-                            {
-                                Console.WriteLine($"Итерация №: {iter + 1}. Расхождение расходов: {MassFlowNumerator}");
-                            }
                         }
 
                     }
                 }
             }
 
-
+            Console.WriteLine($"Вывод давлений\np1: {ChannelParameters[9, 0]} p2: {ChannelParameters[10, 0]}\np1: {ChannelParameters[9, 1]} p2: {ChannelParameters[10, 1]}");
 
         }
     }
