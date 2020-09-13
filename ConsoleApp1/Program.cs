@@ -101,7 +101,7 @@ namespace ConsoleAppSolution
         public static double Viscosity(double p, double t)
         {
             string FilePath = @"D:\Cloud\OneDrive - ssau.ru\Work\AA_Volkov\Gidro_calculate\air.txt";
-            if (File.Exists(FilePath)) ;
+            if (File.Exists(FilePath));
             var txt = File.ReadAllText(FilePath);
             string[] table = txt.Split("\n");
             string[] rowTable = table[0].Split(" ");
@@ -186,8 +186,8 @@ namespace ConsoleAppSolution
             {
                 t_max = RowColTableDoub[2, 0];
             }
-            double v_min = (t - t_max) / (t_min - t_max) * (RowColTableDoub[j_min, i_min - 1] - RowColTableDoub[j_max, i_min - 1]) + RowColTableDoub[j_max, i_min - 1];
-            double v_max = (t - t_max) / (t_min - t_max) * (RowColTableDoub[j_min, i_max - 1] - RowColTableDoub[j_max, i_max - 1]) + RowColTableDoub[j_max, i_max - 1];
+            double v_min = (t - t_max) / (t_min - t_max) * (RowColTableDoub[j_min, i_min] - RowColTableDoub[j_max, i_min]) + RowColTableDoub[j_max, i_min];
+            double v_max = (t - t_max) / (t_min - t_max) * (RowColTableDoub[j_min, i_max] - RowColTableDoub[j_max, i_max]) + RowColTableDoub[j_max, i_max];
             double _viscosity = (p - p_max) / (p_min - p_max) * (v_min - v_max) + v_max;
             return _viscosity;
         }
@@ -372,6 +372,8 @@ namespace ConsoleAppSolution
     class Program
     {
         public const int NumParameters = 54;
+        public const double k = 1.4;
+        public const double R = 287;
         static void Main(string[] args)
         {
             Console.Write("Введите количество каналов в системе: ");
@@ -421,17 +423,17 @@ namespace ConsoleAppSolution
             for (int i = 0; i < NumChannel; i++)
             {
                 Console.Write("\nВведите диаметр[мм] на входе в канал №{0}: ", i + 1);
-                ChannelParameters[2, i] = Convert.ToDouble(Console.ReadLine()); // Диаметр на входе
+                ChannelParameters[2, i] = Convert.ToDouble(Console.ReadLine()) / 1000; // Диаметр на входе
                 Console.Write("Введите диаметр[мм] на входе в канал №{0}: ", i + 1);
-                ChannelParameters[3, i] = Convert.ToDouble(Console.ReadLine()); // Диаметр на выходе
+                ChannelParameters[3, i] = Convert.ToDouble(Console.ReadLine()) / 1000; // Диаметр на выходе
                 Console.Write("Введите длину[мм] канала №{0}: ", i + 1);
-                ChannelParameters[8, i] = Convert.ToDouble(Console.ReadLine()); // Длина канала
+                ChannelParameters[8, i] = Convert.ToDouble(Console.ReadLine()) / 1000; // Длина канала
                 ChannelParameters[4, i] = (ChannelParameters[2, i] + ChannelParameters[3, i]) / 2; // Диаметр по средине канала
                 ChannelParameters[5, i] = Math.PI * Math.Pow(ChannelParameters[2, i], 2) / 4; // Площадь на входе
                 ChannelParameters[6, i] = Math.PI * Math.Pow(ChannelParameters[3, i], 2) / 4; // Площадь на выходе
                 ChannelParameters[7, i] = Math.PI * Math.Pow(ChannelParameters[4, i], 2) / 4; // Площадь по средине
-                ChannelParameters[47, i] = Functions.DiamG(ChannelParameters[7, i]); // Гидравлический диаметр
-                ChannelParameters[43, i] = 2.0;
+                ChannelParameters[48, i] = Functions.DiamG(ChannelParameters[7, i]); // Гидравлический диаметр
+                ChannelParameters[43, i] = 1000;
             }
 
             Console.WriteLine("\n\n***\n\nВведите термогазодинамические параметры для входных сечений");
@@ -457,7 +459,7 @@ namespace ConsoleAppSolution
                     if (SectionIn[i] == ChannelParameters[0, j])
                     {
                         Console.Write("\nВведите полное давление для {0}-го сечения: ", SectionOut[i]);
-                        ChannelParameters[9, i] = Convert.ToDouble(Console.ReadLine());
+                        ChannelParameters[10, i] = Convert.ToDouble(Console.ReadLine());
                         /* Console.Write("Введите полную температуру для {0}-го сечения: ", SectionOut[i]);
                          * ChannelParameters[12, i] = Convert.ToDouble(Console.ReadLine());
                          */
@@ -476,7 +478,7 @@ namespace ConsoleAppSolution
                 {
                     pressure_max1 = ChannelParameters[10, i];
                 }
-                else if (pressure_max1 < ChannelParameters[9, i])
+                if (pressure_max1 < ChannelParameters[9, i])
                 {
                     pressure_max1 = ChannelParameters[9, i];
                 }
@@ -485,7 +487,7 @@ namespace ConsoleAppSolution
                 {
                     pressure_min1 = ChannelParameters[10, i];
                 }
-                else if (pressure_min1 > ChannelParameters[9, i] && ChannelParameters[9, i] != 0)
+                if (pressure_min1 > ChannelParameters[9, i] && ChannelParameters[9, i] != 0)
                 {
                     pressure_min1 = ChannelParameters[9, i];
                 }
@@ -507,7 +509,7 @@ namespace ConsoleAppSolution
                     {
                         pressure_max = ChannelParameters[10, i];
                     }
-                    else if (pressure_max < ChannelParameters[9, i] && pressure_max1 != ChannelParameters[9, i])
+                    if (pressure_max < ChannelParameters[9, i] && pressure_max1 != ChannelParameters[9, i])
                     {
                         pressure_max = ChannelParameters[9, i];
                     }
@@ -523,7 +525,7 @@ namespace ConsoleAppSolution
                     {
                         pressure_min = ChannelParameters[10, i];
                     }
-                    else if (pressure_min > ChannelParameters[9, i] && ChannelParameters[9, i] != 0 && pressure_min1 != ChannelParameters[9, i])
+                    if (pressure_min > ChannelParameters[9, i] && ChannelParameters[9, i] != 0 && pressure_min1 != ChannelParameters[9, i])
                     {
                         pressure_min = ChannelParameters[9, i];
                     }
@@ -661,9 +663,129 @@ namespace ConsoleAppSolution
                     }
                 }
             }
+            Console.WriteLine($"Вывод давлений\np1: {ChannelParameters[9, 0]} p2: {ChannelParameters[10, 0]} ksi: {ChannelParameters[43, 0]}\np1: {ChannelParameters[9, 1]} p2: {ChannelParameters[10, 1]} ksi: {ChannelParameters[43, 1]}");
+            for (int iter = 0; iter < 100; iter++)
+            {
+                for (int i = 0; i < NumChannel; i++)
+                {
+                    ChannelParameters[42, i] = Functions.MassFlow(ChannelParameters[9, i], ChannelParameters[10, i], ChannelParameters[7, i], ChannelParameters[14, i], ChannelParameters[43, i]); // Расхода в канале
+                    ChannelParameters[26, i] = Functions.Density(ChannelParameters[9, i], ChannelParameters[10, i], ChannelParameters[7, i], ChannelParameters[14, i], ChannelParameters[43, i]); // Плотность i,j
+                    ChannelParameters[47, i] = ChannelParameters[42, i] / (ChannelParameters[26, i] * ChannelParameters[7, i]); // Скорость для среднего сечения i,j
+                    ChannelParameters[29, i] = ChannelParameters[47, i] / (Math.Sqrt(2 * k / (k + 1) * R * ChannelParameters[14, i])); // Лямбда для среднего сечения i,j
+                    ChannelParameters[38, i] = Functions.tau_lambda(ChannelParameters[29, i]); // Тау от лямбды i,j
+                    ChannelParameters[41, i] = Functions.pi_lambda(ChannelParameters[29, i]); // Пи от лямбды i,j
+                    ChannelParameters[23, i] = ChannelParameters[38, i] * ChannelParameters[14, i]; // T i,j
+                    ChannelParameters[20, i] = ChannelParameters[26, i] * ChannelParameters[23, i] * R; // статическое давление i,j
+                    ChannelParameters[51, i] = Functions.Viscosity(ChannelParameters[20, i], ChannelParameters[23, i]);
+                    ChannelParameters[44, i] = Functions.Reynolds(ChannelParameters[47, i], ChannelParameters[48, i], ChannelParameters[26, i], ChannelParameters[51, i]);
+                    double ksiin = 0, ksiout = 0, ksitr;
+                    for (int j = 0; j < NumChannel; j++)
+                    {
+                        if (ChannelParameters[0, i] == ChannelParameters[1, j])
+                        {
+                            ksiin += Functions.KsiIn(ChannelParameters[44, i], ChannelParameters[5, i], ChannelParameters[6, j], ChannelParameters[8, i], ChannelParameters[48, i]);
+                        }
+                        else
+                        {
+                            ksiin += 0;
+                        }
+                        if (ChannelParameters[1, i] == ChannelParameters[0, j])
+                        {
+                            ksiout += Functions.KsiOut(ChannelParameters[44, i], ChannelParameters[6, i], ChannelParameters[5, j], ChannelParameters[8, i], ChannelParameters[48, i]);
+                        }
+                        else
+                        {
+                            ksiout += 0;
+                        }
+                    }
+                    ksitr = Functions.KsiTr(ChannelParameters[44, i], ChannelParameters[7, i], ChannelParameters[8, i], ChannelParameters[48, i]);
+                    ChannelParameters[43, i] = ksitr + ksiin + ksiout;
+                }
 
-            Console.WriteLine($"Вывод давлений\np1: {ChannelParameters[9, 0]} p2: {ChannelParameters[10, 0]}\np1: {ChannelParameters[9, 1]} p2: {ChannelParameters[10, 1]}");
 
+                for (int num_iter = 0; num_iter < 100; num_iter++)
+                {
+                    p_max = 0;
+                    p_min = Math.Pow(10, 20);
+
+                    for (int i = 0; i < NumSection; i++)
+                    {
+                        delta = 1000000;
+                        if (SumSection[1, i] > 1)
+                        {
+                            for (int j = 0; j < NumChannel; j++)
+                            {
+                                if (SumSection[0, i] == ChannelParameters[1, j] || SumSection[0, i] == ChannelParameters[0, j])
+                                {
+                                    if (p_max < ChannelParameters[10, j])
+                                    {
+                                        p_max = ChannelParameters[10, j];
+                                    }
+                                    if (p_max < ChannelParameters[9, j])
+                                    {
+                                        p_max = ChannelParameters[9, j];
+                                    }
+                                    if (p_min > ChannelParameters[10, j])
+                                    {
+                                        p_min = ChannelParameters[10, j];
+                                    }
+                                    if (p_min > ChannelParameters[9, j])
+                                    {
+                                        p_min = ChannelParameters[9, j];
+                                    }
+                                }
+                            }
+                            p_mid = (p_min + p_max) / 2;
+                            while (Math.Abs(delta) > 0.0000001)
+                            {
+
+                                MassFlowNumerator = 0;
+                                for (int j = 0; j < NumChannel; j++)
+                                {
+                                    if (SumSection[0, i] == ChannelParameters[1, j])
+                                    {
+                                        p_out = p_mid;
+                                        p_in = ChannelParameters[9, j];
+                                        ChannelParameters[10, j] = p_out;
+                                        MassFlowNumerator += Functions.MassFlow(p_in, p_out, ChannelParameters[7, j], ChannelParameters[14, j], ChannelParameters[43, j]);
+                                    }
+                                    else if (SumSection[0, i] == ChannelParameters[0, j])
+                                    {
+                                        p_in = p_mid;
+                                        p_out = ChannelParameters[10, j];
+                                        ChannelParameters[9, j] = p_in;
+                                        MassFlowNumerator -= Functions.MassFlow(p_in, p_out, ChannelParameters[7, j], ChannelParameters[14, j], ChannelParameters[43, j]);
+                                    }
+                                }
+                                if (MassFlowNumerator == delta)
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    delta = MassFlowNumerator;
+                                    if (delta > 0)
+                                    {
+                                        p_min = p_mid;
+                                        p_mid = (p_max + p_min) / 2;
+                                    }
+                                    else if (delta < 0)
+                                    {
+                                        p_max = p_mid;
+                                        p_mid = (p_max + p_min) / 2;
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                }
+                for (int i = 0; i <NumChannel; i++)
+                {
+                    ChannelParameters[42, i] = Functions.MassFlow(ChannelParameters[9, i], ChannelParameters[10, i], ChannelParameters[7, i], ChannelParameters[14, i], ChannelParameters[43, i]);
+                }
+                Console.WriteLine($"\n{iter + 1}\nВывод давлений\np1: {ChannelParameters[9, 0]} p2: {ChannelParameters[10, 0]} ksi: {ChannelParameters[43, 0]}\np1: {ChannelParameters[9, 1]} p2: {ChannelParameters[10, 1]} ksi: {ChannelParameters[43, 1]}\nmassflow: {ChannelParameters[42, 0]} {ChannelParameters[42, 1]}");
+            }            
         }
     }
 }
