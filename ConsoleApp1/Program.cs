@@ -71,7 +71,7 @@ namespace ConsoleAppSolution
             double _qlambda_mid = _massflow * Math.Sqrt(_tottemp_mid) / (_m * _tot_pres_mid * _area_mid);
             //Console.WriteLine(_qlambda_mid);
             double _lambda_mid = Lambda(_qlambda_mid);
-            _density_mid = epsilon_lambda(_lambda_mid);
+            _density_mid = epsilon_lambda(_lambda_mid) * _density_mid_tot;
             //Console.WriteLine(_lambda_mid);
             double _machnumber_mid = _lambda_mid * (2 / (_k + 1)) / (1 - (_k - 1) / (_k + 1) * Math.Pow(_lambda_mid, 2));
             if (_totpres1 <= _totpres2)
