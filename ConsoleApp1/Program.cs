@@ -21,7 +21,7 @@ namespace ConsoleAppSolution
             double _lambda_mid = (_lambda_max + _lambda_min) / 2;
             double _q_lambda_cal = Math.Pow((_k + 1) / 2, 1 / (_k - 1)) * _lambda_mid * Math.Pow(1 - (_k - 1) / (_k + 1) * Math.Pow(_lambda_mid, 2), 1 / _k - 1);
             double _delta = Math.Abs(_q_lambda_ref - _q_lambda_cal);
-            while (_delta > 0.0001)
+            while (_delta > 0.000000001)
             {
                 if (_q_lambda_ref < _q_lambda_cal)
                 {
@@ -73,14 +73,14 @@ namespace ConsoleAppSolution
             double _lambda_mid = Lambda(_qlambda_mid);
             _density_mid = epsilon_lambda(_lambda_mid) * _density_mid_tot;
             //Console.WriteLine(_lambda_mid);
-            double _machnumber_mid = _lambda_mid * (2 / (_k + 1)) / (1 - (_k - 1) / (_k + 1) * Math.Pow(_lambda_mid, 2));
+            double _machnumber_mid = Math.Sqrt(Math.Pow(_lambda_mid, 2) * (2 / (_k + 1)) / (1 - (_k - 1) / (_k + 1) * Math.Pow(_lambda_mid, 2)));
             if (_totpres1 <= _totpres2)
             {
-                _massflow = Math.Sqrt(1000 * 2 * _density_mid * Math.Pow(_area_mid, 2) / (_ksi * (1 + 0.25 * Math.Pow(_machnumber_mid, 2))));
+                _massflow = Math.Sqrt(1000 * 2 * _density_mid_tot * Math.Pow(_area_mid, 2) / (_ksi * (1 + 0.25 * Math.Pow(_machnumber_mid, 2))));
             }
             else
             {
-                _massflow = Math.Sqrt((_totpres1 - _totpres2) * 2 * _density_mid * Math.Pow(_area_mid, 2) / (_ksi * (1 + 0.25 * Math.Pow(_machnumber_mid, 2))));
+                _massflow = Math.Sqrt((_totpres1 - _totpres2) * 2 * _density_mid_tot * Math.Pow(_area_mid, 2) / (_ksi * (1 + 0.25 * Math.Pow(_machnumber_mid, 2))));
             }
             return _massflow;
         }
@@ -353,22 +353,24 @@ namespace ConsoleAppSolution
             double l = length;
             double re = reynolds;
             double lamb_tr;
-            if (re < 2300)
+            if (re < 2000)
             {
                 lamb_tr = 64 / re;
             }
-            else if (re >= 2300 && re <= 4000)
+            else if (re >= 2000 && re <= 4000)
             {
                 lamb_tr = 0.042671 * Math.Log10(re) - 0.1134;
             }
             else if (re > 4000 && re < Math.Pow(10, 5))
             {
                 lamb_tr = 0.3164 * Math.Pow(re, -0.25);
+                //lamb_tr = 1 / Math.Pow(1.8 * Math.Log10(re) - 1.64, 2);
             }
             else
             {
                 lamb_tr = Math.Pow(1.8 * Math.Log10(re) - 1.64, -2);
             }
+            //lamb_tr = 0.1 * l * Math.Pow(0.2 / diam_g + 68 / re, 0.25);
             double _ksi_tr = lamb_tr * l / diam_g;
             return _ksi_tr;
         }
