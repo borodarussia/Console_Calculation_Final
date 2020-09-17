@@ -36,8 +36,6 @@ namespace ConsoleAppSolution
                     break;
                 }
                 _lambda_mid = (_lambda_max + _lambda_min) / 2;
-                //Console.WriteLine(_lambda_mid);
-                //Console.ReadLine();
                 _q_lambda_cal = Math.Pow((_k + 1) / 2, 1 / (_k - 1)) * _lambda_mid * Math.Pow(1 - (_k - 1) / (_k + 1) * Math.Pow(_lambda_mid, 2), 1 / _k - 1);
                 _delta = Math.Abs(_q_lambda_cal - _q_lambda_ref);
             }
@@ -54,7 +52,7 @@ namespace ConsoleAppSolution
             double _k = k;
             double _R = R;
             double _m = Math.Sqrt(_k / _R * Math.Pow(2 / (_k + 1), (_k + 1) / (_k - 1)));
-            double _massflow, _density_mid, _density_mid_tot;
+            double _massflow, _density_mid_tot;
             if (_totpres1 <= _totpres2)
             {
                 _massflow = Math.Sqrt((Math.Pow(_totpres1, 2) - Math.Pow(_totpres1 - 1000, 2)) * Math.Pow(_area_mid, 2) / (_ksi * _R * _tottemp_mid));
@@ -66,13 +64,9 @@ namespace ConsoleAppSolution
                 _massflow = Math.Sqrt((Math.Pow(_totpres1, 2) - Math.Pow(_totpres2, 2)) * Math.Pow(_area_mid, 2) / (_ksi * _R * _tottemp_mid));
                 _density_mid_tot = _ksi * Math.Pow(_massflow, 2) / (2 * Math.Pow(_area_mid, 2) * (_totpres1 - _totpres2));
             }
-            //Console.WriteLine(_massflow);
             double _tot_pres_mid = _density_mid_tot * _tottemp_mid * _R;
             double _qlambda_mid = _massflow * Math.Sqrt(_tottemp_mid) / (_m * _tot_pres_mid * _area_mid);
-            //Console.WriteLine(_qlambda_mid);
             double _lambda_mid = Lambda(_qlambda_mid);
-            _density_mid = epsilon_lambda(_lambda_mid) * _density_mid_tot;
-            //Console.WriteLine(_lambda_mid);
             double _machnumber_mid = Math.Sqrt(Math.Pow(_lambda_mid, 2) * (2 / (_k + 1)) / (1 - (_k - 1) / (_k + 1) * Math.Pow(_lambda_mid, 2)));
             if (_totpres1 <= _totpres2)
             {
@@ -121,7 +115,7 @@ namespace ConsoleAppSolution
             double _k = k;
             double _R = R;
             double _m = Math.Sqrt(_k / _R * Math.Pow(2 / (_k + 1), (_k + 1) / (_k - 1)));
-            double _massflow, _density_mid, _density_mid_tot;
+            double _massflow, _density_mid_tot;
             if (_totpres1 <= _totpres2)
             {
                 _massflow = Math.Sqrt((Math.Pow(_totpres1, 2) - Math.Pow(_totpres1 - 1000, 2)) * Math.Pow(_area_mid, 2) / (_ksi * _R * _tottemp_mid));
@@ -133,12 +127,11 @@ namespace ConsoleAppSolution
                 _massflow = Math.Sqrt((Math.Pow(_totpres1, 2) - Math.Pow(_totpres2, 2)) * Math.Pow(_area_mid, 2) / (_ksi * _R * _tottemp_mid));
                 _density_mid_tot = _ksi * Math.Pow(_massflow, 2) / (2 * Math.Pow(_area_mid, 2) * (_totpres1 - _totpres2));
             }
-            //Console.WriteLine(_massflow);
             double _tot_pres_mid = _density_mid_tot * _tottemp_mid * _R;
             double _qlambda_mid = _massflow * Math.Sqrt(_tottemp_mid) / (_m * _tot_pres_mid * _area_mid);
             return _qlambda_mid;
         }
-        public static double Density(double totpres1, double totpres2, double area_mid, double tottemp_mid, double ksi, double k = 1.4, double R = 287)
+        public static double Density12(double totpres1, double totpres2, double area_mid, double tottemp_mid, double ksi, double k = 1.4, double R = 287)
         {
             double _totpres1 = totpres1;
             double _totpres2 = totpres2;
@@ -148,17 +141,22 @@ namespace ConsoleAppSolution
             double _k = k;
             double _R = R;
             double _m = Math.Sqrt(_k / _R * Math.Pow(2 / (_k + 1), (_k + 1) / (_k - 1)));
-            double _massflow, _density_mid;
+            double _massflow, _density_mid_tot;
             if (_totpres1 <= _totpres2)
             {
                 _massflow = Math.Sqrt((Math.Pow(_totpres1, 2) - Math.Pow(_totpres1 - 1000, 2)) * Math.Pow(_area_mid, 2) / (_ksi * _R * _tottemp_mid));
-                _density_mid = _ksi * Math.Pow(_massflow, 2) / (2 * Math.Pow(_area_mid, 2) * (_totpres1 - (_totpres1 - 1000)));
+                _density_mid_tot = _ksi * Math.Pow(_massflow, 2) / (2 * Math.Pow(_area_mid, 2) * (_totpres1 - (_totpres1 - 1000)));
+
             }
             else
             {
                 _massflow = Math.Sqrt((Math.Pow(_totpres1, 2) - Math.Pow(_totpres2, 2)) * Math.Pow(_area_mid, 2) / (_ksi * _R * _tottemp_mid));
-                _density_mid = _ksi * Math.Pow(_massflow, 2) / (2 * Math.Pow(_area_mid, 2) * (_totpres1 - _totpres2));
+                _density_mid_tot = _ksi * Math.Pow(_massflow, 2) / (2 * Math.Pow(_area_mid, 2) * (_totpres1 - _totpres2));
             }
+            double _tot_pres_mid = _density_mid_tot * _tottemp_mid * _R;
+            double _qlambda_mid = _massflow * Math.Sqrt(_tottemp_mid) / (_m * _tot_pres_mid * _area_mid);
+            double _lambda_mid = Lambda(_qlambda_mid);
+            double _density_mid = epsilon_lambda(_lambda_mid) * _density_mid_tot;
             return _density_mid;
         }
         public static double Viscosity(double p, double t)
@@ -312,7 +310,7 @@ namespace ConsoleAppSolution
             {
                 ksi_an = 1;
             }
-            _ksi_in = _ksi_in * ksi_an;
+            _ksi_in *= ksi_an;
             return _ksi_in;
         }
         public static double KsiOut(double reynolds, double area_out, double area2, double length, double diamg)
@@ -352,25 +350,14 @@ namespace ConsoleAppSolution
             double diam_g = diamg;
             double l = length;
             double re = reynolds;
-            double lamb_tr;
-            if (re < 2000)
-            {
-                lamb_tr = 64 / re;
-            }
-            else if (re >= 2000 && re <= 4000)
-            {
-                lamb_tr = 0.042671 * Math.Log10(re) - 0.1134;
-            }
-            else if (re > 4000 && re < Math.Pow(10, 5))
-            {
-                lamb_tr = 0.3164 * Math.Pow(re, -0.25);
-                //lamb_tr = 1 / Math.Pow(1.8 * Math.Log10(re) - 1.64, 2);
-            }
-            else
-            {
-                lamb_tr = Math.Pow(1.8 * Math.Log10(re) - 1.64, -2);
-            }
-            //lamb_tr = 0.1 * l * Math.Pow(0.2 / diam_g + 68 / re, 0.25);
+            double ks = 0.065 / 1000;
+            double h = diam_g / 4;
+            double hks = h / ks; // Взято из статьи, вариант как самая идеальная поверхность
+            double re_h = 4 * re;
+            double W135Rh = Math.Log(1.35 * re_h) - Math.Log(Math.Log(1.35 * re_h)) + Math.Log(Math.Log(1.35 * re_h)) / Math.Log(1.35 * re_h) + (Math.Pow(Math.Log(Math.Log(1.35 * re_h)), 2) - 2 * Math.Log(Math.Log(1.35 * re_h))) / (2 * Math.Pow(Math.Log(1.35 * re_h), 2));
+            double alpha = 1 / (1 + Math.Pow(re_h / 678, 8.4));
+            double beta = 1 / (1 + Math.Pow(re_h / (150 * hks), 1.8));
+            double lamb_tr = Math.Pow(64 / re_h, alpha) * Math.Pow(0.86 * Math.Exp(W135Rh) / re_h, 2 * (1 - alpha) * beta) * Math.Pow(1.34 / (Math.Pow(Math.Log(12.21 * hks), 2)), (1 - alpha) * (1 - beta));
             double _ksi_tr = lamb_tr * l / diam_g;
             return _ksi_tr;
         }
@@ -419,18 +406,15 @@ namespace ConsoleAppSolution
         }
         public static double epsilon_lambda(double lambda, double k = 1.4)
         {
-            double epsilon = Math.Pow((1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2)), 1 / (k - 1));
-            return epsilon;
+            return Math.Pow((1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2)), 1 / (k - 1));
         }
         public static double q_lambda(double lambda, double k = 1.4)
         {
-            double q_l = Math.Pow((k + 1) / 2, 1 / (k - 1)) * lambda * Math.Pow(1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2), 1 / (k - 1));
-            return q_l;
+            return Math.Pow((k + 1) / 2, 1 / (k - 1)) * lambda * Math.Pow(1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2), 1 / (k - 1));
         }
         public static double machnumber(double lambda, double k = 1.4)
         {
-            double m = lambda * (2 / (k + 1)) / (1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2));
-            return m;
+            return lambda * (2 / (k + 1)) / (1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2));
         }
     }
 
@@ -498,12 +482,12 @@ namespace ConsoleAppSolution
                 ChannelParameters[6, i] = Math.PI * Math.Pow(ChannelParameters[3, i], 2) / 4; // Площадь на выходе
                 ChannelParameters[7, i] = Math.PI * Math.Pow(ChannelParameters[4, i], 2) / 4; // Площадь по средине
                 ChannelParameters[48, i] = Functions.DiamG(ChannelParameters[7, i]); // Гидравлический диаметр
-                Console.Write($"Введите гидравлическое сопротивление для канала {i+1}: ");
+                Console.Write($"Введите гидравлическое сопротивление для канала {i + 1}: ");
                 ChannelParameters[43, i] = Convert.ToDouble(Console.ReadLine());
             }
 
             Console.Write("\n\n***\n\nПересчитывать гидравлическое сопротивление в каналах?(+ Да/- Нет): ");
-            string ReCalcKsi = Console.ReadLine(); 
+            string ReCalcKsi = Console.ReadLine();
 
             Console.WriteLine("\n\n***\n\nВведите термогазодинамические параметры для входных сечений");
             for (int i = 0; i < NumSectionIn; i++)
@@ -729,12 +713,10 @@ namespace ConsoleAppSolution
                 for (int i = 0; i < NumChannel; i++)
                 {
                     ChannelParameters[42, i] = Functions.MassFlow(ChannelParameters[9, i], ChannelParameters[10, i], ChannelParameters[7, i], ChannelParameters[14, i], ChannelParameters[43, i]); // Расхода в канале
-                    //ChannelParameters[26, i] = Functions.Density(ChannelParameters[9, i], ChannelParameters[10, i], ChannelParameters[7, i], ChannelParameters[14, i], ChannelParameters[43, i]); // Плотность i,j
-                    //ChannelParameters[47, i] = ChannelParameters[42, i] / (ChannelParameters[26, i] * ChannelParameters[7, i]); // Скорость для среднего сечения i,j
                     ChannelParameters[29, i] = Functions.Lambda12(ChannelParameters[9, i], ChannelParameters[10, i], ChannelParameters[7, i], ChannelParameters[14, i], ChannelParameters[43, i]); // Лямбда для среднего сечения i,j
-                    ChannelParameters[54, i] = Functions.QLambda12(ChannelParameters[9, i], ChannelParameters[10, i], ChannelParameters[7, i], ChannelParameters[14, i], ChannelParameters[43, i]);
-                    ChannelParameters[47, i] = ChannelParameters[29, i] * Math.Sqrt(2 * k / (k + 1) * R * ChannelParameters[14, i]); // Скорость для среднего сечения i,j
-                    ChannelParameters[26, i] = ChannelParameters[42, i] / (ChannelParameters[47, i] * ChannelParameters[7, i]); // Плотность i,j
+                    ChannelParameters[54, i] = Functions.QLambda12(ChannelParameters[9, i], ChannelParameters[10, i], ChannelParameters[7, i], ChannelParameters[14, i], ChannelParameters[43, i]);                    
+                    ChannelParameters[26, i] = Functions.Density12(ChannelParameters[9, i], ChannelParameters[10, i], ChannelParameters[7, i], ChannelParameters[14, i], ChannelParameters[43, i]); // Плотность i,j
+                    ChannelParameters[47, i] = ChannelParameters[42, i] / (ChannelParameters[26, i] * ChannelParameters[7, i]); // Скорость для среднего сечения i,j
                     ChannelParameters[38, i] = Functions.tau_lambda(ChannelParameters[29, i]); // Тау от лямбды i,j
                     ChannelParameters[41, i] = Functions.pi_lambda(ChannelParameters[29, i]); // Пи от лямбды i,j
                     ChannelParameters[23, i] = ChannelParameters[38, i] * ChannelParameters[14, i]; // T i,j
@@ -765,7 +747,7 @@ namespace ConsoleAppSolution
                         }
                         ksitr = Functions.KsiTr(ChannelParameters[44, i], ChannelParameters[7, i], ChannelParameters[8, i], ChannelParameters[48, i]);
                         ChannelParameters[43, i] = ksitr + ksiin + ksiout;
-                    }                    
+                    }
                 }
             }
             Console.WriteLine("\n\n***\n\n");
