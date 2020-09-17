@@ -159,7 +159,7 @@ namespace ConsoleAppSolution
             double _density_mid = epsilon_lambda(_lambda_mid) * _density_mid_tot;
             return _density_mid;
         }
-        public static double Viscosity(double p, double t)
+        public static double ViscosityVarg(double p, double t)
         {
             string FilePath = @"D:\Cloud\OneDrive - ssau.ru\Work\AA_Volkov\Gidro_calculate\air.txt";
             if (File.Exists(FilePath)) ;
@@ -251,6 +251,62 @@ namespace ConsoleAppSolution
             double v_max = (t - t_max) / (t_min - t_max) * (RowColTableDoub[j_min, i_max] - RowColTableDoub[j_max, i_max]) + RowColTableDoub[j_max, i_max];
             double _viscosity = (p - p_max) / (p_min - p_max) * (v_min - v_max) + v_max;
             return _viscosity;
+        }
+        public static double ViscosityNum(double t)
+        {
+            string FilePath = @"D:\Cloud\OneDrive - ssau.ru\Work\AA_Volkov\Gidro_calculate\viscocity.txt";
+            if (File.Exists(FilePath)) ;
+            var txt = File.ReadAllText(FilePath);
+            string[] table = txt.Split("\n");
+            string[] ColTable = table[0].Split(" ");
+            int numberRows = table.Length - 1;
+            int numberColumns = ColTable.Length;
+            string[,] RowColTableStr = new string[numberRows, numberColumns];
+            double[,] RowColTableDoub = new double[numberRows, numberColumns];
+            for (int i = 0; i < numberRows; i++)
+            {
+                string[] waste_line = table[i].Split(" ");
+                for (int j = 0; j < numberColumns; j++)
+                {
+                    RowColTableStr[i, j] = waste_line[j];
+                }
+            }
+            for (int i = 0; i < numberRows; i++)
+            {
+                for (int j = 0; j < numberColumns; j++)
+                {
+                    RowColTableDoub[i, j] = Convert.ToDouble(RowColTableStr[i, j]);
+                }
+            }
+            int j_max = numberRows - 2, j_min = 1;
+            double t_max = RowColTableDoub[numberRows - 1, 0];
+            double t_min = RowColTableDoub[0, 0];
+            if (t > t_min && t < t_max)
+            {
+                for (int j = 1; j < numberRows; j++)
+                {
+                    if (t_max - t > RowColTableDoub[j, 0] - t_max && RowColTableDoub[j, 0] > t)
+                    {
+                        t_max = RowColTableDoub[j, 0];
+                        j_max = j;
+                    }
+                    if (t - t_min > t - RowColTableDoub[j, 0] && RowColTableDoub[j, 0] < t)
+                    {
+                        t_min = RowColTableDoub[j, 0];
+                        j_min = j;
+                    }
+                }
+            }
+            else if (t > t_max)
+            {
+                t_min = RowColTableDoub[numberRows - 1, 0];
+            }
+            else if (t < t_min)
+            {
+                t_max = RowColTableDoub[2, 0];
+            }
+            double v = (t - t_max) / (t_min - t_max) * (RowColTableDoub[j_min, 1] - RowColTableDoub[j_max, 1]) + RowColTableDoub[j_max, 1];
+            return v;
         }
         public static double Reynolds(double velocity, double diamg, double density, double viscosity)
         {
@@ -345,7 +401,7 @@ namespace ConsoleAppSolution
             }
             return _ksi_out;
         }
-        public static double KsiTr(double reynolds, double area_mid, double length, double diamg)
+        public static double KsiTr(double reynolds, double length, double diamg)
         {
             double diam_g = diamg;
             double l = length;
@@ -361,7 +417,7 @@ namespace ConsoleAppSolution
             double _ksi_tr = lamb_tr * l / diam_g;
             return _ksi_tr;
         }
-        public static double KsiPov(double alpha, double area_mid, double radius, double diamg)
+        public static double KsiPov(double alpha, double radius, double diamg)
         {
             double diam_g = diamg;
             double alph = alpha * Math.PI / 180;
@@ -721,7 +777,8 @@ namespace ConsoleAppSolution
                     ChannelParameters[41, i] = Functions.pi_lambda(ChannelParameters[29, i]); // Пи от лямбды i,j
                     ChannelParameters[23, i] = ChannelParameters[38, i] * ChannelParameters[14, i]; // T i,j
                     ChannelParameters[20, i] = ChannelParameters[26, i] * ChannelParameters[23, i] * R; // статическое давление i,j
-                    ChannelParameters[51, i] = Functions.Viscosity(ChannelParameters[20, i], ChannelParameters[23, i]); // Вязкость i, j
+                    //ChannelParameters[51, i] = Functions.ViscosityVarg(ChannelParameters[20, i], ChannelParameters[23, i]);
+                    ChannelParameters[51, i] = Functions.ViscosityNum(ChannelParameters[23, i]); // Вязкость i, j
                     ChannelParameters[44, i] = Functions.Reynolds(ChannelParameters[47, i], ChannelParameters[48, i], ChannelParameters[26, i], ChannelParameters[51, i]); // Рейнольдс
                     if (ReCalcKsi == "+")
                     {
@@ -745,7 +802,7 @@ namespace ConsoleAppSolution
                                 ksiout += 0;
                             }
                         }
-                        ksitr = Functions.KsiTr(ChannelParameters[44, i], ChannelParameters[7, i], ChannelParameters[8, i], ChannelParameters[48, i]);
+                        ksitr = Functions.KsiTr(ChannelParameters[44, i], ChannelParameters[8, i], ChannelParameters[48, i]);
                         ChannelParameters[43, i] = ksitr + ksiin + ksiout;
                     }
                 }
