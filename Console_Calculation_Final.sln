@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.30503.244
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{10EF16DA-59EF-48B4-9AAB-6019E1B5DE6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportData", "ImportData\ImportData.csproj", "{ED998E3E-D877-42CD-BA5F-75F3F33C8026}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImportData", "ImportData\ImportData.csproj", "{ED998E3E-D877-42CD-BA5F-75F3F33C8026}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "program_with_importdata", "program_with_importdata\program_with_importdata.csproj", "{DBC51CDB-E092-4F30-B6DA-87B6FB63C5C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{ED998E3E-D877-42CD-BA5F-75F3F33C8026}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED998E3E-D877-42CD-BA5F-75F3F33C8026}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED998E3E-D877-42CD-BA5F-75F3F33C8026}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBC51CDB-E092-4F30-B6DA-87B6FB63C5C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBC51CDB-E092-4F30-B6DA-87B6FB63C5C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBC51CDB-E092-4F30-B6DA-87B6FB63C5C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBC51CDB-E092-4F30-B6DA-87B6FB63C5C9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
