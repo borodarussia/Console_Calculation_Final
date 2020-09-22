@@ -1,0 +1,16 @@
+Geom_parameters,,,,,,,,,,
+Count_channel,10,,,,,,,,,
+Input_section,1,2,3,4,5,6,7,8,9,10
+Output_section,2,3,4,5,6,7,8,9,10,11
+Input_diameter[mm],100,100,100,100,100,100,100,100,100,100
+Output_diameter[mm],100,100,100,100,100,100,100,100,100,100
+Channel_length[mm],20,20,20,20,20,20,20,20,20,20
+Flow_parameters,,,,,,,,,,
+Count_input_section,1,,,,,,,,,
+Count_output_section,1,,,,,,,,,
+Number_input_section,1,,,,,,,,,
+Number_output_section,11,,,,,,,,,
+Input_total_pressure[Pa],101325,,,,,,,,,
+Input_total_temperature[K],300,,,,,,,,,
+Output_total_pressure[Pa],101106.62,,,,,,,,,
+Hidraulic_resistance,2,2,2,2,2,2,2,2,2,2

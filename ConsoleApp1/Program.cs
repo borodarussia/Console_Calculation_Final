@@ -67,14 +67,15 @@ namespace ConsoleAppSolution
             double _tot_pres_mid = _density_mid_tot * _tottemp_mid * _R;
             double _qlambda_mid = _massflow * Math.Sqrt(_tottemp_mid) / (_m * _tot_pres_mid * _area_mid);
             double _lambda_mid = Lambda(_qlambda_mid);
+            double _density_mid = epsilon_lambda(_lambda_mid) * _density_mid_tot;
             double _machnumber_mid = Math.Sqrt(Math.Pow(_lambda_mid, 2) * (2 / (_k + 1)) / (1 - (_k - 1) / (_k + 1) * Math.Pow(_lambda_mid, 2)));
             if (_totpres1 <= _totpres2)
             {
-                _massflow = Math.Sqrt(1000 * 2 * _density_mid_tot * Math.Pow(_area_mid, 2) / (_ksi * (1 + 0.25 * Math.Pow(_machnumber_mid, 2))));
+                _massflow = Math.Sqrt(1000 * 2 * _density_mid * Math.Pow(_area_mid, 2) / (_ksi * (1 + 0.25 * Math.Pow(_machnumber_mid, 2))));
             }
             else
             {
-                _massflow = Math.Sqrt((_totpres1 - _totpres2) * 2 * _density_mid_tot * Math.Pow(_area_mid, 2) / (_ksi * (1 + 0.25 * Math.Pow(_machnumber_mid, 2))));
+                _massflow = Math.Sqrt((_totpres1 - _totpres2) * 2 * _density_mid * Math.Pow(_area_mid, 2) / (_ksi * (1 + 0.25 * Math.Pow(_machnumber_mid, 2))));
             }
             return _massflow;
         }
@@ -553,9 +554,9 @@ namespace ConsoleAppSolution
                     if (SectionIn[i] == ChannelParameters[0, j])
                     {
                         Console.Write("\nВведите полное давление для {0}-го сечения: ", SectionIn[i]);
-                        ChannelParameters[9, i] = Convert.ToDouble(Console.ReadLine());
+                        ChannelParameters[9, j] = Convert.ToDouble(Console.ReadLine());
                         Console.Write("Введите полную температуру для {0}-го сечения: ", SectionIn[i]);
-                        ChannelParameters[12, i] = Convert.ToDouble(Console.ReadLine());
+                        ChannelParameters[12, j] = Convert.ToDouble(Console.ReadLine());
                     }
                 }
             }
@@ -568,7 +569,7 @@ namespace ConsoleAppSolution
                     if (SectionIn[i] == ChannelParameters[0, j])
                     {
                         Console.Write("\nВведите полное давление для {0}-го сечения: ", SectionOut[i]);
-                        ChannelParameters[10, i] = Convert.ToDouble(Console.ReadLine());
+                        ChannelParameters[10, j] = Convert.ToDouble(Console.ReadLine());
                         /* Console.Write("Введите полную температуру для {0}-го сечения: ", SectionOut[i]);
                          * ChannelParameters[12, i] = Convert.ToDouble(Console.ReadLine());
                          */
