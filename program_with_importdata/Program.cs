@@ -162,7 +162,9 @@ namespace program_with_importdata
         }
         public static double ViscosityVarg(double p, double t)
         {
-            string FilePath = @"D:\Cloud\OneDrive - ssau.ru\Work\AA_Volkov\Gidro_calculate\air.txt";
+            NumberFormatInfo provider = new NumberFormatInfo();
+            provider.NumberDecimalSeparator = ".";
+            string FilePath = @"vargaftik.txt";
             if (File.Exists(FilePath)) ;
             var txt = File.ReadAllText(FilePath);
             string[] table = txt.Split("\n");
@@ -190,7 +192,7 @@ namespace program_with_importdata
                     }
                     else
                     {
-                        RowColTableDoub[i, j] = Convert.ToDouble(RowColTableStr[i, j]);
+                        RowColTableDoub[i, j] = Convert.ToDouble(RowColTableStr[i, j], provider);
                     }
                 }
             }
@@ -255,7 +257,9 @@ namespace program_with_importdata
         }
         public static double ViscosityNum(double t)
         {
-            string FilePath = @"D:\Cloud\OneDrive - ssau.ru\Work\AA_Volkov\Gidro_calculate\viscocity.txt";
+            NumberFormatInfo provider = new NumberFormatInfo();
+            provider.NumberDecimalSeparator = ".";
+            string FilePath = @"numeca.txt";
             if (File.Exists(FilePath)) ;
             var txt = File.ReadAllText(FilePath);
             string[] table = txt.Split("\n");
@@ -276,7 +280,7 @@ namespace program_with_importdata
             {
                 for (int j = 0; j < numberColumns; j++)
                 {
-                    RowColTableDoub[i, j] = Convert.ToDouble(RowColTableStr[i, j]);
+                    RowColTableDoub[i, j] = Convert.ToDouble(RowColTableStr[i, j], provider);
                 }
             }
             int j_max = numberRows - 2, j_min = 1;
@@ -471,7 +475,11 @@ namespace program_with_importdata
         }
         public static double machnumber(double lambda, double k = 1.4)
         {
-            return lambda * (2 / (k + 1)) / (1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2));
+            return Math.Sqrt(Math.Pow(lambda, 2) * (2 / (k + 1)) / (1 - (k - 1) / (k + 1) * Math.Pow(lambda, 2)));
+        }
+        public static double q_lambda_massflow(double G, double T, double m, double p, double A)
+        {
+            return G * Math.Sqrt(T) / (m * p * A);
         }
     }
     class Program
@@ -482,6 +490,9 @@ namespace program_with_importdata
 
         static void Main(string[] args)
         {
+            NumberFormatInfo provider = new NumberFormatInfo();
+            provider.NumberDecimalSeparator = ".";
+            double m = Math.Sqrt(k / R * Math.Pow(2 / (k + 1), (k + 1) / (k - 1)));
             Console.WriteLine("Введите полный путь до файла с исходными данными.\n\n***\n\n");
             string FilePath = Console.ReadLine();
             string[] rowImport = File.ReadAllLines(FilePath);
@@ -509,16 +520,17 @@ namespace program_with_importdata
             {
                 for (int j = 1; j < columnNumber; j++)
                 {
-                    tableDouble[i, j - 1] = double.Parse(tableString[i, j]);
+                    tableDouble[i, j - 1] = Convert.ToDouble(tableString[i, j], provider);
                 }
             }
-
             int NumChannel = Convert.ToInt32(tableDouble[1, 0]);
             int NumSection = NumChannel + 1;
             int NumSectionIn = Convert.ToInt32(tableDouble[8, 0]);
             int NumSectionOut = Convert.ToInt32(tableDouble[9, 0]);
             double[] SectionIn = new double[NumSectionIn];
             double[] SectionOut = new double[NumSectionOut];
+
+
             if (NumSectionIn + NumSectionOut <= NumSection)
             {
                 for (int i = 0; i < NumSectionIn; i++)
@@ -554,6 +566,10 @@ namespace program_with_importdata
 
             Console.Write("\n\n***\n\nПересчитывать гидравлическое сопротивление в каналах?(+ Да/- Нет): ");
             string ReCalcKsi = Console.ReadLine();
+
+            Console.Write("\n\n***\n\nПересчитывать гидравлическое сопротивление в каналах?(+ Варгафтик/- Numeca): ");
+            string ViscChange = Console.ReadLine();
+
 
             for (int i = 0; i < NumSectionIn; i++)
             {
@@ -779,8 +795,21 @@ namespace program_with_importdata
                     ChannelParameters[41, i] = Functions.pi_lambda(ChannelParameters[29, i]); // Пи от лямбды i,j
                     ChannelParameters[23, i] = ChannelParameters[38, i] * ChannelParameters[14, i]; // T i,j
                     ChannelParameters[20, i] = ChannelParameters[26, i] * ChannelParameters[23, i] * R; // статическое давление i,j
-                    //ChannelParameters[51, i] = Functions.ViscosityVarg(ChannelParameters[20, i], ChannelParameters[23, i]);
-                    ChannelParameters[51, i] = Functions.ViscosityNum(ChannelParameters[23, i]); // Вязкость i, j
+                    ChannelParameters[11, i] = ChannelParameters[20, i] / ChannelParameters[41, i];
+                    if (ViscChange == "+")
+                    {
+                        ChannelParameters[51, i] = Functions.ViscosityVarg(ChannelParameters[20, i], ChannelParameters[23, i]); // Вязкость i, j
+                    }
+                    else if (ViscChange == "-")
+                    {
+                        ChannelParameters[51, i] = Functions.ViscosityNum(ChannelParameters[23, i]); // Вязкость i, j
+                    }
+                    else
+                    {
+                        Console.WriteLine("Вы накосячили, закрываем программу");
+                        return;
+                    }    
+                    
                     ChannelParameters[44, i] = Functions.Reynolds(ChannelParameters[47, i], ChannelParameters[48, i], ChannelParameters[26, i], ChannelParameters[51, i]); // Рейнольдс
                     if (ReCalcKsi == "+")
                     {
@@ -808,13 +837,87 @@ namespace program_with_importdata
                         ChannelParameters[43, i] = ksitr + ksiin + ksiout;
                     }
                 }
+
+                //Заполнение массива данными
+
+                for (int i = 0; i < NumChannel; i++)
+                {
+                    ChannelParameters[52, i] = Functions.q_lambda_massflow(ChannelParameters[42, i], ChannelParameters[12, i], m, ChannelParameters[9, i], ChannelParameters[5, i]);
+                    ChannelParameters[53, i] = Functions.q_lambda_massflow(ChannelParameters[42, i], ChannelParameters[13, i], m, ChannelParameters[10, i], ChannelParameters[6, i]);
+                    ChannelParameters[54, i] = Functions.q_lambda_massflow(ChannelParameters[42, i], ChannelParameters[14, i], m, ChannelParameters[11, i], ChannelParameters[7, i]);
+                    
+                    ChannelParameters[27, i] = Functions.Lambda(ChannelParameters[52, i], k);
+                    ChannelParameters[28, i] = Functions.Lambda(ChannelParameters[53, i], k);
+                    ChannelParameters[29, i] = Functions.Lambda(ChannelParameters[54, i], k);
+
+                    ChannelParameters[30, i] = Functions.machnumber(ChannelParameters[27, i], k);
+                    ChannelParameters[31, i] = Functions.machnumber(ChannelParameters[28, i], k);
+                    ChannelParameters[32, i] = Functions.machnumber(ChannelParameters[29, i], k);
+
+                    ChannelParameters[33, i] = Functions.epsilon_lambda(ChannelParameters[27, i], k);
+                    ChannelParameters[34, i] = Functions.epsilon_lambda(ChannelParameters[28, i], k);
+                    ChannelParameters[35, i] = Functions.epsilon_lambda(ChannelParameters[29, i], k);
+
+                    ChannelParameters[36, i] = Functions.tau_lambda(ChannelParameters[27, i], k);
+                    ChannelParameters[37, i] = Functions.tau_lambda(ChannelParameters[28, i], k);
+                    ChannelParameters[38, i] = Functions.tau_lambda(ChannelParameters[29, i], k);
+
+                    ChannelParameters[39, i] = Functions.pi_lambda(ChannelParameters[27, i], k);
+                    ChannelParameters[40, i] = Functions.pi_lambda(ChannelParameters[28, i], k);
+                    ChannelParameters[41, i] = Functions.pi_lambda(ChannelParameters[29, i], k);
+
+                    ChannelParameters[18, i] = ChannelParameters[9, i] * ChannelParameters[39, i];
+                    ChannelParameters[19, i] = ChannelParameters[10, i] * ChannelParameters[40, i];
+                    ChannelParameters[20, i] = ChannelParameters[11, i] * ChannelParameters[41, i];
+
+                    ChannelParameters[21, i] = ChannelParameters[36, i] * ChannelParameters[12, i];
+                    ChannelParameters[22, i] = ChannelParameters[37, i] * ChannelParameters[13, i];
+                    ChannelParameters[22, i] = ChannelParameters[37, i] * ChannelParameters[13, i];
+
+                    ChannelParameters[15, i] = ChannelParameters[9, i] / (R * ChannelParameters[12, i]);
+                    ChannelParameters[16, i] = ChannelParameters[10, i] / (R * ChannelParameters[13, i]);
+                    ChannelParameters[17, i] = ChannelParameters[11, i] / (R * ChannelParameters[14, i]);
+
+                    ChannelParameters[24, i] = ChannelParameters[15, i] * ChannelParameters[33, i];
+                    ChannelParameters[25, i] = ChannelParameters[16, i] * ChannelParameters[34, i];
+                    ChannelParameters[26, i] = ChannelParameters[17, i] * ChannelParameters[35, i];
+
+                    ChannelParameters[45, i] = ChannelParameters[42, i] / (ChannelParameters[24, i] * ChannelParameters[5, i]); 
+                    ChannelParameters[46, i] = ChannelParameters[42, i] / (ChannelParameters[25, i] * ChannelParameters[6, i]);
+                    ChannelParameters[47, i] = ChannelParameters[42, i] / (ChannelParameters[26, i] * ChannelParameters[7, i]);
+
+
+                    if (ViscChange == "+")
+                    {
+                        ChannelParameters[49, i] = Functions.ViscosityVarg(ChannelParameters[18, i], ChannelParameters[21, i]);
+                        ChannelParameters[50, i] = Functions.ViscosityVarg(ChannelParameters[19, i], ChannelParameters[22, i]);
+                    }
+                    else if (ViscChange == "-")
+                    {
+                        ChannelParameters[49, i] = Functions.ViscosityNum(ChannelParameters[21, i]);
+                        ChannelParameters[50, i] = Functions.ViscosityNum(ChannelParameters[22, i]);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Вы накосячили, закрываем программу");
+                        return;
+                    }
+                }
+
+                StreamWriter file = new StreamWriter("output.txt");
+                for (int i = 0; i < NumParameters; i++)
+                {
+                    for (int j = 0; j < NumChannel; j++)
+                    {
+                        file.Write(ChannelParameters[i, j] + ",");
+                    }
+                    file.Write("\n");
+                }
+                file.Close();
             }
-            Console.WriteLine("\n\n***\n\n");
-            for (int i = 0; i < NumChannel; i++)
-            {
-                Console.WriteLine($"p1: {ChannelParameters[9, i]} p2: {ChannelParameters[10, i]} G: {ChannelParameters[42, i]} ksi: {ChannelParameters[43, i]} rho: {ChannelParameters[26, i]}");
-                Console.WriteLine($"c12: {ChannelParameters[47, i]} lamb12: {ChannelParameters[29, i]} qlamb12: {ChannelParameters[54, i]}");
-            }
+
+            Console.WriteLine("\n\n***\n\nРасчет выполнен");
+
 
 
 
